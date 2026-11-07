@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>90/10 Training Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout: plan builder (dropdowns + live result) on top, then the four levels, a cost chart, and extras. */
+:root{
+  --bg:#f5f7fa; --surface:#ffffff; --ink:#14223a; --muted:#5b6678; --line:#dde3ec;
+  --accent:#e2c100; --accent-ink:#14223a; --navy:#1d3a6b; --on-navy:#ffffff;
+  --good:#1f8a4c; --mid:#c98a00; --low:#8a94a6; --fill-off:#e6eaf1;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1622; --surface:#172131; --ink:#e8edf5; --muted:#9aa6b8; --line:#2a3648;
+  --accent:#f2d43a; --accent-ink:#14223a; --navy:#8fb1ea; --on-navy:#0f1622;
+  --good:#4cc27e; --mid:#e5ad2e; --low:#7d889b; --fill-off:#26324a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1622; --surface:#172131; --ink:#e8edf5; --muted:#9aa6b8; --line:#2a3648;
+  --accent:#f2d43a; --accent-ink:#14223a; --navy:#8fb1ea; --on-navy:#0f1622;
+  --good:#4cc27e; --mid:#e5ad2e; --low:#7d889b; --fill-off:#26324a; color-scheme:dark}
+
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding-block:28px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.05}
+h1{font-size:clamp(2.4rem,7vw,3.6rem);font-weight:800}
+h2{font-size:1.9rem;font-weight:700}
+h3{font-size:1.4rem;font-weight:700}
+p{margin:0}
+.eyebrow{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-size:.95rem;color:var(--muted)}
+.lede{color:var(--muted);max-width:60ch;margin-top:10px}
+.ball{display:inline-flex;align-items:center;gap:10px;margin-bottom:8px}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--accent)}
+.note{font-size:.85rem;color:var(--muted)}
+.step{display:flex;flex-direction:column;gap:16px}
+
+/* Builder */
+.builder{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px}
+@media (max-width:760px){.builder{grid-template-columns:1fr}}
+.controls,.result{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700;font-size:.95rem}
+.field .hint{font-size:.82rem;color:var(--muted)}
+select{font:inherit;font-size:1.05rem;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;
+  padding:10px 40px 10px 12px;appearance:none;-webkit-appearance:none;cursor:pointer;width:100%;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 20px) 55%,calc(100% - 14px) 55%;background-size:6px 6px;background-repeat:no-repeat}
+select:hover{border-color:var(--navy)}
+select:focus-visible{outline:3px solid var(--accent);outline-offset:1px;border-color:var(--navy)}
+
+.result-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.badge{font-family:var(--display);font-weight:800;font-size:1.6rem;background:var(--navy);color:var(--on-navy);border-radius:10px;padding:2px 14px;text-transform:uppercase;letter-spacing:.04em}
+.total{font-family:var(--display);font-weight:800;font-size:3.2rem;line-height:1;font-variant-numeric:tabular-nums}
+.total small{font-size:1.1rem;color:var(--muted);font-weight:600;font-family:var(--body)}
+.breakdown{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.breakdown td{padding:7px 0;border-bottom:1px solid var(--line);font-size:.98rem}
+.breakdown td:last-child{text-align:right;font-weight:700}
+.breakdown tr.sum td{border-bottom:none;border-top:2px solid var(--ink);font-weight:700}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fact{background:var(--bg);border-radius:10px;padding:10px 12px}
+.fact b{display:block;font-family:var(--display);font-size:1.4rem;font-weight:700;line-height:1.1}
+.fact span{font-size:.82rem;color:var(--muted)}
+
+/* Meters */
+.meters{display:flex;flex-direction:column;gap:8px}
+.meter{display:grid;grid-template-columns:100px 1fr;align-items:center;gap:4px 8px;font-size:.88rem}
+.meter b{font-weight:600;color:var(--muted)}
+.bars{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+.meter-hint{font-size:.82rem;color:var(--muted)}
+.plan .meters-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.bars i{height:9px;border-radius:3px;background:var(--fill-off)}
+.bars.g i.on{background:var(--good)} .bars.m i.on{background:var(--mid)} .bars.l i.on{background:var(--low)}
+.meter .word{grid-column:2;font-size:.85rem;font-weight:600}
+
+/* Level cards */
+.plans{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media (max-width:900px){.plans{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.plans{grid-template-columns:1fr}}
+.plan{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0;
+  cursor:pointer;text-align:left;font:inherit;color:inherit;transition:border-color .15s,transform .15s}
+.plan:hover{border-color:var(--navy)}
+.plan:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.plan.sel{border:2.5px solid var(--accent);transform:translateY(-2px)}
+.plan-name{font-family:var(--display);font-weight:800;font-size:1.7rem;text-transform:uppercase;letter-spacing:.03em;line-height:1}
+.plan-sub{font-size:.85rem;color:var(--muted)}
+.price{font-family:var(--display);font-weight:800;font-size:2.1rem;line-height:1;font-variant-numeric:tabular-nums}
+.price span{font-size:.95rem;font-weight:600;color:var(--muted);font-family:var(--body)}
+ul.what{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:.95rem}
+ul.what li{display:flex;gap:8px}
+ul.what li::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--navy);margin-top:.6em}
+ul.what li.no{color:var(--muted)} ul.what li.no::before{background:var(--low)}
+.plan .meters{border-top:1px solid var(--line);padding-top:10px;margin-top:auto}
+
+/* Chart */
+.compare{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.row{display:grid;grid-template-columns:150px 1fr 80px;align-items:center;gap:12px;border-radius:8px;padding:4px 6px}
+@media (max-width:520px){.row{grid-template-columns:100px 1fr 64px}}
+.row.you{background:var(--bg);outline:2px solid var(--accent)}
+.row .lab{font-weight:600;font-size:.95rem;min-width:0}
+.row .lab small{display:block;color:var(--muted);font-weight:400;font-size:.8rem}
+.track{height:26px;background:var(--fill-off);border-radius:6px;overflow:hidden}
+.fill{height:100%;border-radius:6px;background:var(--navy);transition:width .35s ease}
+.row.you .fill{background:var(--accent)}
+.row .amt{font-family:var(--display);font-weight:700;font-size:1.3rem;text-align:right;font-variant-numeric:tabular-nums}
+
+/* Extras */
+.extras{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:760px){.extras{grid-template-columns:1fr}}
+.extra{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.extra table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.extra td{padding:6px 0;border-bottom:1px solid var(--line)}
+.extra tr:last-child td{border-bottom:none}
+.extra td:last-child{text-align:right;font-family:var(--display);font-weight:700;font-size:1.25rem}
+@media (prefers-reduced-motion:reduce){.fill,.plan{transition:none}}
+</style>
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header>
+  <div class="ball"><span class="dot"></span><span class="eyebrow">Hitting &amp; Lessons</span></div>
+  <h1>90/10 Training Options</h1>
+  <p class="lede">Every player starts with a one-month lesson trial ($45 × 4 lessons = $180). After that, pick a level. Pick from the menus to build a plan and see what it costs each month.</p>
+</header>
+
+<section class="step" aria-labelledby="b-h">
+  <h2 id="b-h" hidden>Build a plan</h2>
+  <div class="builder">
+    <form class="controls" id="form">
+      <div class="field">
+        <label for="month">Which month?</label>
+        <select id="month">
+          <option value="after" selected>After the trial</option>
+          <option value="trial">First month (lesson trial)</option>
+        </select>
+      </div>
+      <div class="field" id="f-level">
+        <label for="level">Level</label>
+        <select id="level">
+          <option value="elite">Advanced membership $107 (Elite competitor)</option>
+          <option value="competitive" selected>Foundational membership $65 (Competitive athlete)</option>
+          <option value="developing">Cage rentals only ($30/half hour) (Developing athlete)</option>
+          <option value="exploring">Exploring (no membership or rentals - Friday drop ins only) $0</option>
+        </select>
+      </div>
+      <div class="field" id="f-lessons">
+        <label for="lessons">Lessons per month ($30 each)</label>
+        <select id="lessons">
+          <option value="1" selected>1 lesson (the minimum)</option>
+          <option value="2">2 lessons</option>
+          <option value="3">3 lessons</option>
+          <option value="4">4 lessons (once a week)</option>
+        </select>
+      </div>
+      <div class="field" id="f-cage" hidden>
+        <label for="cage">Cage rentals per month (30 min, $30 each)</label>
+        <select id="cage">
+          <option value="0">None</option>
+          <option value="2">2 rentals (1 hour)</option>
+          <option value="4" selected>4 rentals (about once a week)</option>
+          <option value="6">6 rentals (3 hours)</option>
+          <option value="8">8 rentals (twice a week)</option>
+        </select>
+      </div>
+      <div class="field" id="f-drop">
+        <label for="drop">Friday drop-ins per month</label>
+        <select id="drop">
+          <option value="0" selected>None</option>
+          <option value="1">1 Friday</option>
+          <option value="2">2 Fridays</option>
+          <option value="4">Every Friday (4)</option>
+        </select>
+        <span class="hint" id="drop-hint">$20 each for members, $35 for non-members</span>
+      </div>
+    </form>
+
+    <div class="result" aria-live="polite">
+      <div class="result-top">
+        <span class="badge" id="r-badge">Competitive</span>
+        <div class="total"><span id="r-total">$95</span> <small id="r-per">/month</small></div>
+      </div>
+      <table class="breakdown"><tbody id="r-rows"></tbody></table>
+      <div class="facts">
+        <div class="fact"><b id="r-time">1.5 hrs</b><span>cage time per week</span></div>
+        <div class="fact"><b id="r-member">Yes</b><span>member pricing</span></div>
+      </div>
+      <div class="meters" id="r-meters"></div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+const LEVELS = {
+  elite:{name:"Advanced",sub:"High commitment",base:107,hrs:3,lessons:true,member:true,commit:4,improve:4,cw:"High",iw:"Most improvement",tone:"g",
+    what:[["3 hours of cage time per week",1],["Lessons when needed, $30 each",1],["At least 1 lesson a month",1]]},
+  competitive:{name:"Foundational",sub:"Steady commitment",base:65,hrs:1.5,lessons:true,member:true,commit:3,improve:3,cw:"Medium",iw:"Some improvement",tone:"m",
+    what:[["1.5 hours of cage time per week",1],["Lessons when needed, $30 each",1],["At least 1 lesson a month",1]]},
+  developing:{name:"Cage Rentals",sub:"Light commitment",base:0,hrs:0,lessons:false,member:false,cage:true,commit:2,improve:2,cw:"Low",iw:"Stays the same, might improve",tone:"l",
+    what:[["Rent a cage, $30 per 30 min",1],["No membership",0],["No lessons",0]]},
+  exploring:{name:"Exploring",sub:"Not ready to commit",base:0,hrs:0,lessons:false,member:false,commit:0,improve:0,cw:"None",iw:"No improvement",tone:"l",
+    what:[["No help from 90/10",0],["No cage time",0],["No lessons",0]]}
+};
+const $ = id => document.getElementById(id);
+const money = n => "$" + n.toLocaleString();
+// Points: every option picked adds commitment and improvement. Lessons count most toward improvement.
+const SEG = 10;
+function scores(o){
+  const mem = {elite:8, competitive:4}[o.key] || 0;
+  const c = mem + o.lessons*1   + o.rentals*0.5 + o.drops*1;
+  const i = mem + o.lessons*1.5 + o.rentals*0.5 + o.drops*0.75;
+  return {c:Math.min(SEG,Math.round(c/16*SEG)), i:Math.min(SEG,Math.round(i/17*SEG))};
+}
+const CW = ["None","Light","Light","Moderate","Moderate","Solid","Solid","High","High","Very high","All in"];
+const IW = ["No improvement","Stays the same","Might improve","Some improvement","Some improvement","Steady improvement","Steady improvement","Strong improvement","Strong improvement","Big improvement","Most improvement"];
+const tone = n => n>=7 ? "g" : n>=4 ? "m" : "l";
+const bars = n => `<div class="bars ${tone(n)}">${Array.from({length:SEG},(_,k)=>`<i class="${k<n?'on':''}"></i>`).join("")}</div>`;
+const meters = s => `
+  <div class="meter"><b>Commitment</b>${bars(s.c)}<span class="word">${CW[s.c]} (${s.c}/10)</span></div>
+  <div class="meter"><b>Improvement</b>${bars(s.i)}<span class="word">${IW[s.i]} (${s.i}/10)</span></div>`;
+
+function minCost(key){const L=LEVELS[key]; return L.base + (L.lessons?30:0) + (L.cage?30:0);}
+
+
+function compute(){
+  const month=$("month").value, key=$("level").value, L=LEVELS[key];
+  const drop=+$("drop").value, rows=[];
+  let member=false, time="—", label=L.name;
+  if(month==="trial"){
+    label="Lesson trial";
+    rows.push(["4 lessons × $45 (30 min each)",180]);
+  } else {
+    member=L.member;
+    if(L.base) rows.push([`${L.name} membership (${L.hrs} hrs/week)`,L.base]);
+    if(L.lessons){const n=+$("lessons").value; rows.push([`${n} lesson${n>1?'s':''} × $30`,n*30]);}
+    if(L.cage){const n=+$("cage").value; if(n) rows.push([`${n} cage rentals × $30`,n*30]); time = n? (n*0.5/4).toFixed(n%4?2:1).replace(/\.?0+$/,"")+" hrs":"0 hrs";}
+    if(L.hrs) time=L.hrs+" hrs";
+    if(key==="exploring") time="0 hrs";
+  }
+  if(drop){
+    const p=member?20:35; rows.push([`${drop} Friday drop-in${drop>1?'s':''} × $${p}`,drop*p]);
+  }
+  if(!rows.length) rows.push(["Nothing paid to 90/10",0]);
+  const s = month==="trial"
+    ? scores({key:"trial",lessons:4,rentals:0,drops:drop})
+    : scores({key,lessons:L.lessons?+$("lessons").value:0,rentals:L.cage?+$("cage").value:0,drops:drop});
+  return {month,key,L,rows,member,time,label,s,total:rows.reduce((s,r)=>s+r[1],0)};
+}
+
+function update(){
+  const r=compute(), trial=r.month==="trial";
+  $("f-level").hidden=trial;
+  $("f-lessons").hidden=trial||!r.L.lessons;
+  $("f-cage").hidden=trial||!r.L.cage;
+  $("drop-hint").textContent = r.member? "Member price: $20 each" : "Non-member price: $35 each";
+
+  $("r-badge").textContent=r.label;
+  $("r-total").textContent=money(r.total);
+  $("r-per").textContent= trial? "first month" : "/month";
+  $("r-rows").innerHTML = r.rows.map(([t,v])=>`<tr><td>${t}</td><td>${money(v)}</td></tr>`).join("")
+    + `<tr class="sum"><td>Total</td><td>${money(r.total)}</td></tr>`;
+  $("r-time").textContent = trial? "30 min" : r.time;
+  $("r-time").nextElementSibling.textContent = trial? "per lesson, once a week" : "cage time per week";
+  $("r-member").textContent = r.member? "Yes":"No";
+  $("r-meters").innerHTML = meters(r.s) + `<p class="meter-hint">${trial
+    ? "The trial shows where the player is at. After this month, pick a level."
+    : r.key==="exploring" ? "Add Friday drop-ins or pick a membership to raise both bars."
+    : "Add more lessons, cage time or Friday drop-ins to raise both bars."}</p>`;
+
+}
+document.querySelectorAll("select").forEach(s=>s.addEventListener("change",update));
+$("form").addEventListener("submit",e=>e.preventDefault());
+update();
+</script>
+</body>
+</html>
